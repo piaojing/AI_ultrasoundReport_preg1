@@ -3,10 +3,11 @@ First Trimester Ultrasound Report Generator
 ============================================
 GUI  : Tkinter
 AI   : Google Gemini 2.5 Flash (free tier)
+Fallback AI : OpenRouter NVIDIA Nemotron 3 Ultra (free tier) when Gemini rate limits are hit
 Output: Professional .docx  named  PatientName-AgeGender.docx
 
 Requirements:
-    pip install google-generativeai python-docx
+    pip install google-generativeai python-docx requests
 
 Free Gemini API key: https://aistudio.google.com/apikey
 """
@@ -19,6 +20,7 @@ import re
 import time
 from datetime import date
 from dotenv import load_dotenv, set_key
+import requests
 
 # ── third-party ──────────────────────────────────────────────────────────────
 try:
@@ -55,8 +57,17 @@ def save_dir_to_env(path: str):
 # ─────────────────────────────────────────────────────────────────────────────
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")   # set in .env file  # https://aistudio.google.com/apikey
 GEMINI_MODEL   = "gemini-2.5-flash"
-MAX_RETRIES    = 5
-RETRY_WAIT     = 65          # seconds between retries on 429
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")  # set in .env file if you want fallback to OpenRouter
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL") or "openai/gpt-oss-120b:free"
+OPENROUTER_API_BASE = os.getenv("OPENROUTER_API_BASE") or "https://openrouter.ai/api/v1"
+if "api.openrouter.ai" in OPENROUTER_API_BASE:
+    OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
+OPENROUTER_API_BASE = OPENROUTER_API_BASE.rstrip("/")
+
+
+class GeminiRateLimitError(RuntimeError):
+    """Raised when Gemini free tier limit is reached and fallback is needed."""
+
 
 # Section headings used to detect headings in AI output
 SECTION_HEADINGS = {
@@ -95,38 +106,68 @@ def call_gemini(prompt: str, status_cb=None) -> str:
     genai.configure(api_key=GEMINI_API_KEY)
     model = genai.GenerativeModel(GEMINI_MODEL)
 
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            if status_cb:
-                status_cb(f"Calling Gemini AI … (attempt {attempt})")
-            response = model.generate_content(prompt)
-            return response.text.strip()
+    try:
+        if status_cb:
+            status_cb("Calling Gemini AI …")
+        response = model.generate_content(prompt)
+        return response.text.strip()
 
-        except Exception as exc:
-            msg = str(exc)
-            if "429" in msg or "ResourceExhausted" in msg or "quota" in msg.lower():
-                # Try to parse retry delay from the message
-                wait = RETRY_WAIT
-                m = re.search(r"retry[_ ]in[^\d]*(\d+)", msg, re.I)
-                if m:
-                    wait = int(m.group(1)) + 3
+    except Exception as exc:
+        msg = str(exc)
+        if "429" in msg or "ResourceExhausted" in msg or "quota" in msg.lower():
+            raise GeminiRateLimitError(msg) from exc
+        raise
 
-                if attempt < MAX_RETRIES:
-                    for remaining in range(wait, 0, -1):
-                        if status_cb:
-                            status_cb(
-                                f"Rate limit hit — retrying in {remaining}s "
-                                f"(attempt {attempt}/{MAX_RETRIES})"
-                            )
-                        time.sleep(1)
-                    continue
-                else:
-                    raise RuntimeError(
-                        f"Gemini rate limit: all {MAX_RETRIES} attempts failed.\n"
-                        "Wait a minute and try again."
-                    ) from exc
-            else:
-                raise
+
+def call_openrouter(prompt: str, status_cb=None) -> str:
+    if status_cb:
+        status_cb(f"Calling OpenRouter {OPENROUTER_MODEL}…")
+
+    if not OPENROUTER_API_KEY:
+        raise RuntimeError(
+            "OpenRouter API key is not configured. Set OPENROUTER_API_KEY in .env to enable fallback."
+        )
+
+    url = f"{OPENROUTER_API_BASE}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": OPENROUTER_MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.0,
+        "max_tokens": 1200,
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=120)
+        response.raise_for_status()
+        data = response.json()
+
+        if not data or "choices" not in data or not data["choices"]:
+            raise RuntimeError("OpenRouter response did not return any choices.")
+
+        choice = data["choices"][0]
+        if isinstance(choice.get("message"), dict):
+            content = choice["message"].get("content")
+            if isinstance(content, str):
+                return content.strip()
+
+        if isinstance(choice.get("text"), str):
+            return choice["text"].strip()
+
+        raise RuntimeError(
+            "Unable to parse OpenRouter completion response. "
+            "The completion choice did not include valid text content."
+        )
+
+    except requests.exceptions.RequestException as exc:
+        raise RuntimeError(
+            "OpenRouter request failed. Check OPENROUTER_API_BASE, OPENROUTER_API_KEY, and network connectivity. "
+            f"Tried: {url}. Last error: {exc}"
+        ) from exc
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  PROMPT BUILDER
@@ -628,6 +669,19 @@ class App(tk.Tk):
         self.status_var.set(msg)
         self.update_idletasks()
 
+    def _show_info_dialog(self, title: str, message: str):
+        event = threading.Event()
+        dialog_result = {"shown": False}
+
+        def show():
+            messagebox.showinfo(title, message)
+            dialog_result["shown"] = True
+            event.set()
+
+        self.after(0, show)
+        event.wait()
+        return dialog_result["shown"]
+
     def _generate_thread(self, api_key: str):
         try:
             # Collect all field values
@@ -638,13 +692,40 @@ class App(tk.Tk):
             global GEMINI_API_KEY
             GEMINI_API_KEY = api_key
 
-            prompt      = build_prompt(patient)
-            report_text = call_gemini(prompt, status_cb=self._set_status)
-            vn_prompt   = translate_report_to_vietnamese(report_text)
-            report_text_vn = call_gemini(vn_prompt, status_cb=self._set_status)
+            prompt = build_prompt(patient)
+            try:
+                report_text = call_gemini(prompt, status_cb=self._set_status)
+            except GeminiRateLimitError:
+                if OPENROUTER_API_KEY:
+                    self._set_status("Gemini free limit reached. Switching to OpenRouter…")
+                    self._show_info_dialog(
+                        "Gemini Limit Reached",
+                        "Gemini free quota was exceeded (429). Click OK to switch to OpenRouter NVIDIA Nemotron 3 Ultra fallback."
+                    )
+                    report_text = call_openrouter(prompt, status_cb=self._set_status)
+                else:
+                    raise RuntimeError(
+                        "Gemini free quota exceeded. Set OPENROUTER_API_KEY in .env to enable fallback."
+                    )
+
+            vn_prompt = translate_report_to_vietnamese(report_text)
+            try:
+                report_text_vn = call_gemini(vn_prompt, status_cb=self._set_status)
+            except GeminiRateLimitError:
+                if OPENROUTER_API_KEY:
+                    self._set_status("Gemini free limit reached during translation. Switching to OpenRouter…")
+                    self._show_info_dialog(
+                        "Gemini Limit Reached",
+                        "Gemini free quota was exceeded during translation. Click OK to switch to OpenRouter NVIDIA Nemotron 3 Ultra fallback."
+                    )
+                    report_text_vn = call_openrouter(vn_prompt, status_cb=self._set_status)
+                else:
+                    raise RuntimeError(
+                        "Gemini free quota exceeded. Set OPENROUTER_API_KEY in .env to enable fallback."
+                    )
 
             self._set_status("Building Word document…")
-            docx_doc    = build_docx(report_text, report_text_vn, patient)
+            docx_doc = build_docx(report_text, report_text_vn, patient)
 
             fname    = safe_filename(patient)
             save_dir = patient.get("save_dir", "").strip() or DEFAULT_SAVE_DIR
