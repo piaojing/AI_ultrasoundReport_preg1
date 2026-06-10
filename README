@@ -1,0 +1,2 @@
+python -m PyInstaller --onefile --windowed --name first_trimester_report first_trimester_report.py
+python -m PyInstaller --onefile --windowed --name first_trimester_report --add-data ".env;." first_trimester_report.py
