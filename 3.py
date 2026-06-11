@@ -195,7 +195,8 @@ def build_prompt(data: dict) -> str:
         row("Placenta thickness",               p.get("placenta_thickness"), "mm"),
         row("Placenta maturity",                p.get("placenta_maturity")),
         row("Placenta edges",                   p.get("placenta_edges")),
-        row("Amniotic Fluid",                   p.get("amniotic")),
+        row("Amniotic Fluid",                   p.get("amniotic"), "mm"),
+        row("MVP",                              p.get("mvp"), "mm"),
         row("Umbilical Cord",                   p.get("umbilical_cord")),
         row("Umbilical artery Doppler RI",      p.get("umbilical_artery_ri")),
         row("Uterus",                           p.get("uterus")),
@@ -660,7 +661,9 @@ class App(tk.Tk):
                   width=40, default="Uniform structure, no mass")
         self._row(pu, "Adnexa / Ovaries", "adnexa",
                   width=40, default="No abnormal images on ovaries")
-        self._row(pu, "Amniotic Fluid", "amniotic",
+        self._row(pu, "Amniotic Fluid (mm)", "amniotic",
+                  width=40, default="Clear fluid, normal amount")
+        self._row(pu, "MVP (mm)", "MVP",
                   width=40, default="Clear fluid, normal amount")
 
         # 8. UMBILICAL CORD & OTHER PARTS
