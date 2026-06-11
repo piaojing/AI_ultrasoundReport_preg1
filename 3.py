@@ -174,7 +174,7 @@ def build_prompt(data: dict) -> str:
         return None
 
     meas_lines = list(filter(None, [
-        row("Gestational Age by LMP",          p.get("ga_lmp"),       "weeks"),
+        row("Gestational Age by LMP",           p.get("ga_lmp"),       "weeks"),
         row("Biparietal Diameter (BPD)",        p.get("bpd"),          "mm"),
         row("Head Circumference (HC)",          p.get("hc"),           "mm"),
         row("Abdominal Circumference (AC)",     p.get("ac"),           "mm"),
@@ -185,6 +185,9 @@ def build_prompt(data: dict) -> str:
         row("Cerebellar diameter",              p.get("cerebellar_diameter")),
         row("CM size",                          p.get("cm_size")),
         row("Nose length",                      p.get("nose_length")),
+        row("Heart",                            p.get("Heart")),
+        row("Lung",                             p.get("Lung")),
+        row("Abdomen",                          p.get("Abdomen")),
         row("Facial / jaw / extremities",       p.get("facial_jaw_extremities")),
         row("Skull bones",                      p.get("skull_bones")),
         row("Spine / skeletal system",          p.get("spine_skeletal")),
@@ -231,7 +234,7 @@ Writing rules:
 - Expand raw data into complete, professional radiological sentences.
 - Create a formal radiology report tone appropriate for obstetric ultrasound.
 - FINDINGS section must address each observed parameter individually and clearly.
-- IMPRESSION must summarise fetal viability, key findings, and any relevant 2nd or 3rd trimester observations.
+- IMPRESSION must summarise fetal viability, key findings, and any relevant 2nd or 3rd trimester observations, calculate EDD from 14-26 weeks based on BPD, from 27-40 weeks or more based on FL.    
 - If any field is blank or missing, omit the specific detail gracefully without inventing data.
 - Write in plain text only — no markdown, no asterisks, no bullet characters.
 - Be medically precise but concise.
@@ -619,6 +622,12 @@ class App(tk.Tk):
             ("Nose length", "nose_length", 20, None),
             ("Skull bones", "skull_bones", 20, None),
         ])
+        self._row(bio, "Heart", "Heart",
+                  width=40, default="4 chambers visualized, normal axis, no obvious defects")
+        self._row(bio, "Lung", "Lung",
+                  width=40, default="Homogeneous echotexture, no glandular cysts")
+        self._row(bio, "Abdomen", "Abdomen",
+                  width=40, default="Abdomen is closed. Diphragm intact. Normal stomach, kidneys and bladder.")
         self._row(bio, "Facial / jaw / extremities", "facial_jaw_extremities",
                   width=40, default="No abnormal images currently displayed")
         self._row(bio, "Spine / skeletal system", "spine_skeletal",
