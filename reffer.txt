@@ -1,0 +1,120 @@
+| Week | BPD (mm) | HC (mm) | AC (mm) | FL (mm) | TCD (mm) |
+| ---- | -------: | ------: | ------: | ------: | -------: |
+| 20   |       48 |     178 |     151 |      34 |       20 |
+| 21   |       52 |     190 |     163 |      37 |       21 |
+| 22   |       55 |     202 |     175 |      40 |       22 |
+| 23   |       58 |     214 |     186 |      43 |       23 |
+| 24   |       61 |     225 |     198 |      46 |       24 |
+| 25   |       64 |     236 |     210 |      49 |       25 |
+| 26   |       67 |     247 |     222 |      52 |       26 |
+| 27   |       70 |     258 |     234 |      55 |       27 |
+| 28   |       73 |     269 |     246 |      57 |       28 |
+| 29   |       75 |     279 |     257 |      59 |       29 |
+| 30   |       78 |     289 |     268 |      61 |       30 |
+| 31   |       80 |     299 |     279 |      63 |       31 |
+| 32   |       82 |     309 |     289 |      65 |       32 |
+| 33   |       84 |     318 |     299 |      67 |       33 |
+| 34   |       86 |     327 |     309 |      69 |       34 |
+| 35   |       88 |     336 |     319 |      71 |       35 |
+| 36   |       90 |     345 |     329 |      73 |       36 |
+| 37   |       91 |     353 |     338 |      74 |       37 |
+| 38   |       93 |     360 |     347 |      75 |       38 |
+| 39   |       94 |     367 |     355 |      76 |       39 |
+| 40   |       95 |     374 |     363 |      77 |       40 |
+
+Lateral Ventricular Width
+
+| Finding               | Measurement |
+| --------------------- | ----------- |
+| Normal                | < 10 mm     |
+| Mild ventriculomegaly | 10–12 mm    |
+| Moderate              | 13–15 mm    |
+| Severe                | > 15 mm     |
+
+Cisterna Magna (CM)
+| Finding           | Measurement |
+| ----------------- | ----------- |
+| Normal            | 2–10 mm     |
+| Enlarged          | >10 mm      |
+| Small/obliterated | <2 mm       |
+
+Nasal Bone Length
+| Week | Average (mm) |
+| ---- | -----------: |
+| 20   |          6.0 |
+| 22   |          6.8 |
+| 24   |          7.4 |
+| 26   |          8.0 |
+| 28   |          8.5 |
+| 30   |          9.0 |
+| 32   |          9.5 |
+| 34   |         10.0 |
+| 36   |         10.5 |
+| 38   |         11.0 |
+
+Fetal Heart Rate (FHR)
+    Gestation	Normal FHR
+    14–40 weeks	110–160 bpm
+
+    Typical averages:
+
+    20 weeks: ~150 bpm
+    30 weeks: ~140 bpm
+    Term: ~130–140 bpm
+
+Umbilical Artery Doppler RI
+| Week | RI        |
+| ---- | --------- |
+| 20   | 0.75–0.80 |
+| 24   | 0.72–0.78 |
+| 28   | 0.68–0.75 |
+| 32   | 0.63–0.72 |
+| 36   | 0.58–0.68 |
+| 40   | 0.52–0.65 |
+
+Umbilical Artery S/D Ratio
+| Week | Typical S/D |
+| ---- | ----------- |
+| 20   | 4.0–5.0     |
+| 24   | 3.5–4.5     |
+| 28   | 3.0–4.0     |
+| 32   | 2.5–3.5     |
+| 36   | 2.0–3.0     |
+| 40   | 1.8–2.8     |
+
+Placental Thickness
+| Week | Thickness (mm) |
+| ---- | -------------: |
+| 20   |             20 |
+| 24   |             24 |
+| 28   |             28 |
+| 32   |             32 |
+| 36   |             36 |
+| 40   |          38–40 |
+
+Amniotic Fluid
+| Finding         | AFI     |
+| --------------- | ------- |
+| Normal          | 5–24 cm |
+| Oligohydramnios | <5 cm   |
+| Polyhydramnios  | >24 cm  |
+
+Maximum Vertical Pocket (MVP)
+| Finding         | MVP    |
+| --------------- | ------ |
+| Normal          | 2–8 cm |
+| Oligohydramnios | <2 cm  |
+| Polyhydramnios  | >8 cm  |
+
+Most Important Normal Cutoffs Used in Daily OB Ultrasound
+| Parameter                           | Normal      |
+| ----------------------------------- | ----------- |
+| FHR                                 | 110–160 bpm |
+| Lateral ventricle                   | <10 mm      |
+| Cisterna magna                      | 2–10 mm     |
+| Nuchal fold (18–24 w)               | <6 mm       |
+| Umbilical artery end-diastolic flow | Present     |
+| Cervical length                     | >25 mm      |
+| Placental thickness                 | GA ±10 mm   |
+| AFI                                 | 5–24 cm     |
+| MVP                                 | 2–8 cm      |
