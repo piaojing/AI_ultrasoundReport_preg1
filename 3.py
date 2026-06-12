@@ -2,7 +2,7 @@
 2nd or 3rd Trimester Ultrasound Report Generator
 ============================================
 GUI  : Tkinter
-AI   : Google Gemini 2.5 Flash (free tier)
+AI   : Google Gemini 2.5 
 Fallback AI : OpenRouter NVIDIA Nemotron 3 Ultra (free tier) when Gemini rate limits are hit
 Output: Professional .docx  named  PatientName-AgeGender.docx
 
@@ -195,8 +195,8 @@ def build_prompt(data: dict) -> str:
         row("Placenta thickness",               p.get("placenta_thickness"), "mm"),
         row("Placenta maturity",                p.get("placenta_maturity")),
         row("Placenta edges",                   p.get("placenta_edges")),
-        row("Amniotic Fluid",                   p.get("amniotic"), "mm"),
-        row("MVP",                              p.get("mvp"), "mm"),
+        # row("Amniotic Fluid Index",             p.get("API"), "mm"),
+        row("Maximum Vertical Pocket",          p.get("MVP"), "mm"),
         row("Umbilical Cord",                   p.get("umbilical_cord")),
         row("Umbilical artery Doppler RI",      p.get("umbilical_artery_ri")),
         row("Uterus",                           p.get("uterus")),
@@ -234,8 +234,10 @@ Ultrasound measurements and observations:
 Writing rules:
 - Expand raw data into complete, professional radiological sentences.
 - Create a formal radiology report tone appropriate for obstetric ultrasound.
-- FINDINGS section must address each observed parameter individually and clearly, do not evaluate normal ranges.
-- IMPRESSION must summarise fetal viability, key findings, and any relevant 2nd or 3rd trimester observations, calculate EDD from 14-26 weeks based on BPD, from 27-40 weeks or more based on FL.    
+- FINDINGS section must address each observed parameter individually and clearly with bullet points, do not evaluate normal ranges.
+- IMPRESSION must summarise fetal viability, key findings, and any relevant 2nd or 3rd trimester observations, 
+   calculate EDD from 14-26 weeks based on BPD, from 27-40 weeks or more based on FL, 
+   comment on any discrepancies with LMP-based GA and abnormal measurements.    
 - If any field is blank or missing, omit the specific detail gracefully without inventing data.
 - Write in plain text only — no markdown, no asterisks, no bullet characters.
 - Be medically precise but concise.
@@ -661,10 +663,10 @@ class App(tk.Tk):
                   width=40, default="Uniform structure, no mass")
         self._row(pu, "Adnexa / Ovaries", "adnexa",
                   width=40, default="No abnormal images on ovaries")
-        self._row(pu, "Amniotic Fluid (mm)", "amniotic",
-                  width=40, default="Normal (50-240 mm)")
-        self._row(pu, "MVP (mm)", "MVP",
-                  width=40, default="Normal (20-80 mm)")
+        # self._row(pu, "Amniotic Fluid Index (mm)", "AFI",
+        #           width=20, default="")
+        self._row(pu, "Maximum Vertical Pocket (mm)", "MVP",
+                  width=20, default="")
 
         # 8. UMBILICAL CORD & OTHER PARTS
         uc = self._section("🧬  Umbilical Cord & Other Parts")
