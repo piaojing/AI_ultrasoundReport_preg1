@@ -234,7 +234,7 @@ Ultrasound measurements and observations:
 Writing rules:
 - Expand raw data into complete, professional radiological sentences.
 - Create a formal radiology report tone appropriate for obstetric ultrasound.
-- FINDINGS section must address each observed parameter individually and clearly.
+- FINDINGS section must address each observed parameter individually and clearly, do not evaluate normal ranges.
 - IMPRESSION must summarise fetal viability, key findings, and any relevant 2nd or 3rd trimester observations, calculate EDD from 14-26 weeks based on BPD, from 27-40 weeks or more based on FL.    
 - If any field is blank or missing, omit the specific detail gracefully without inventing data.
 - Write in plain text only — no markdown, no asterisks, no bullet characters.
@@ -662,9 +662,9 @@ class App(tk.Tk):
         self._row(pu, "Adnexa / Ovaries", "adnexa",
                   width=40, default="No abnormal images on ovaries")
         self._row(pu, "Amniotic Fluid (mm)", "amniotic",
-                  width=40, default="Clear fluid, normal amount")
+                  width=40, default="Normal (50-240 mm)")
         self._row(pu, "MVP (mm)", "MVP",
-                  width=40, default="Clear fluid, normal amount")
+                  width=40, default="Normal (20-80 mm)")
 
         # 8. UMBILICAL CORD & OTHER PARTS
         uc = self._section("🧬  Umbilical Cord & Other Parts")
@@ -740,16 +740,20 @@ class App(tk.Tk):
             global GEMINI_API_KEY
             GEMINI_API_KEY = api_key
 
+            gemini_limit_alert_shown = False
+
             prompt = build_prompt(patient)
             try:
                 report_text = call_gemini(prompt, status_cb=self._set_status)
             except GeminiRateLimitError:
                 if OPENROUTER_API_KEY:
                     self._set_status("Gemini free limit reached. Switching to OpenRouter…")
-                    self._show_info_dialog(
-                        "Gemini Limit Reached",
-                        "Gemini free quota was exceeded (429). Click OK to switch to OpenRouter NVIDIA Nemotron 3 Ultra fallback."
-                    )
+                    if not gemini_limit_alert_shown:
+                        self._show_info_dialog(
+                            "Gemini Limit Reached",
+                            "Gemini free quota was exceeded (429). Click OK to switch to OpenRouter fallback."
+                        )
+                        gemini_limit_alert_shown = True
                     report_text = call_openrouter(prompt, status_cb=self._set_status)
                 else:
                     raise RuntimeError(
@@ -762,10 +766,12 @@ class App(tk.Tk):
             except GeminiRateLimitError:
                 if OPENROUTER_API_KEY:
                     self._set_status("Gemini free limit reached during translation. Switching to OpenRouter…")
-                    self._show_info_dialog(
-                        "Gemini Limit Reached",
-                        "Gemini free quota was exceeded during translation. Click OK to switch to OpenRouter NVIDIA Nemotron 3 Ultra fallback."
-                    )
+                    if not gemini_limit_alert_shown:
+                        self._show_info_dialog(
+                            "Gemini Limit Reached",
+                            "Gemini free quota was exceeded during translation. Click OK to switch to OpenRouter NVIDIA Nemotron 3 Ultra fallback."
+                        )
+                        gemini_limit_alert_shown = True
                     report_text_vn = call_openrouter(vn_prompt, status_cb=self._set_status)
                 else:
                     raise RuntimeError(
